@@ -5,22 +5,24 @@ import { renderCompactResult, renderBanner, renderSessionSummary } from "../ui/t
 
 // config de como o treco de ficar monitorando ao vivaco vai se comportar
 export interface ProbeOptions {
-    
+
     interval: string;
-    
+
     duration: string;
-    
+
     maxProbes: number;
-    
+
     method: string;
-    
+
     expectedStatus: number;
-    
+
     timeout: number;
-    
+
     dashboard: boolean;
-    
+
     headers: string[];
+
+    output?: string;
 }
 
 function parseDuration(input: string): number {
@@ -67,13 +69,19 @@ export async function probeCommand(urls: string[], options: ProbeOptions): Promi
     }
 
     // Build targets
-    const targets: ProbeTarget[] = urls.map((url) => ({
-        url,
-        method: options.method as ProbeTarget["method"],
-        timeout: options.timeout,
-        expectedStatus: options.expectedStatus,
-        headers: Object.keys(headers).length > 0 ? headers : undefined,
-    }));
+    const targets: ProbeTarget[] = urls.map((inputUrl) => {
+        let url = inputUrl.trim();
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = `https://${url}`;
+        }
+        return {
+            url,
+            method: options.method as ProbeTarget["method"],
+            timeout: options.timeout,
+            expectedStatus: options.expectedStatus,
+            headers: Object.keys(headers).length > 0 ? headers : undefined,
+        };
+    });
 
     const intervalMs = parseDuration(options.interval);
     const durationMs = options.duration === "0" ? 0 : parseDuration(options.duration);
@@ -121,6 +129,13 @@ export async function probeCommand(urls: string[], options: ProbeOptions): Promi
                 session.endedAt ?? new Date(),
             ),
         );
+        if (options.output) {
+            import("node:fs/promises").then(({ writeFile }) =>
+                writeFile(options.output!, JSON.stringify(session, null, 2), "utf-8")
+                    .then(() => console.log(chalk.green(`\n  ✓ Sessão salva com sucesso em ${options.output}\n`)))
+                    .catch(e => console.error(chalk.red(`\n  ✕ Erro ao salvar sessão: ${e}\n`)))
+            );
+        }
     });
 
     // Start monitoring

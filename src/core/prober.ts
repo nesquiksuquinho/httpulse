@@ -88,7 +88,7 @@ function determineStatus(
     if (statusCode !== expectedStatus) {
         return "degraded";
     }
-    // Considera resposta degradada se demorar mais de 3 segundos
+    // se demorou mais que 3 segundos pra pingar, o bagulho ta capenga (degradado)
     if (totalTime > 3000) {
         return "degraded";
     }
@@ -126,15 +126,15 @@ export async function probe(target: ProbeTarget): Promise<ProbeResult> {
     let certInfo: CertificateInfo | null = null;
 
     try {
-        // Fase 1: Resolução DNS
+        // Fase 1: Qual é o IP desse maluco? (DNS)
         const dnsStart = performance.now();
         dnsInfo = await resolveDns(hostname);
         timings.dns = dnsInfo.resolveTime;
 
-        // Fase 2: Verificação de certificado SSL (paralela com requisição para HTTPS)
+        // Fase 2: Puxa a capivara do cadeado SSL (junto com o resto pra não perder tempo)
         const certPromise = isHttps ? getCertificateInfo(hostname, port) : Promise.resolve(null);
 
-        // Fase 3: Requisição HTTP
+        // Fase 3: Pede a página! (Dá o bote HTTP)
         const requestStart = performance.now();
 
         const controller = new AbortController();
@@ -150,7 +150,7 @@ export async function probe(target: ProbeTarget): Promise<ProbeResult> {
 
             timings.ttfb = Math.round((performance.now() - requestStart) * 100) / 100;
 
-            // Ler o corpo para obter o tamanho completo da resposta
+            // puxa o peso do pacote em bytes pra mostrar pro cara
             const bodyBuffer = await response.body.arrayBuffer();
             const responseSize = bodyBuffer.byteLength;
 
@@ -162,7 +162,7 @@ export async function probe(target: ProbeTarget): Promise<ProbeResult> {
 
             clearTimeout(timeoutId);
 
-            // Aguardar informações do certificado
+            // segura a ansiedade e pega o resultado do SSL paralalo
             certInfo = await certPromise;
 
             const status = determineStatus(response.statusCode, expectedStatus, timings.total);

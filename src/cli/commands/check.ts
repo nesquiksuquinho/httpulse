@@ -7,27 +7,32 @@ import { dnsProbe } from "../../probes/dns.js";
 
 // os paranaue q da pra passar via terminal no check
 export interface CheckOptions {
-    
+
     method: string;
-    
+
     timeout: number;
-    
+
     expectedStatus: number;
-    
+
     sslDetails: boolean;
-    
+
     dnsDetails: boolean;
-    
+
     headers: string[];
-    
+
     followRedirects: boolean;
 }
 
 // da 1 tiro na api e mostra a ficha completa na cara do cliao
-export async function checkCommand(url: string, options: CheckOptions): Promise<void> {
+export async function checkCommand(inputUrl: string, options: CheckOptions): Promise<void> {
     process.stdout.write(renderBanner());
 
-    // Parse headers
+    let url = inputUrl.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = `https://${url}`;
+    }
+
+    // Hora de destrinchar os cabeçalhos que o usuario maluco mandou via CLI
     const headers: Record<string, string> = {};
     for (const header of options.headers) {
         const colonIndex = header.indexOf(":");
@@ -49,13 +54,13 @@ export async function checkCommand(url: string, options: CheckOptions): Promise<
 
     console.log(chalk.dim(`  Analisando ${url}...\n`));
 
-    // Execute the probe
+    // Mete bala na requisição
     const result = await probe(target);
 
-    // Display result
+    // Cospe o resultado bonitinho na tela
     console.log(renderProbeResult(result));
 
-    // SSL details
+    // Detalhes extras do cadeado SSL (se for HTTPS, obvio)
     if (options.sslDetails && url.startsWith("https://")) {
         console.log("");
         console.log(chalk.bold("  🔒 Detalhes do Certificado SSL"));
@@ -82,7 +87,7 @@ export async function checkCommand(url: string, options: CheckOptions): Promise<
         }
     }
 
-    // DNS details
+    // Quer ver a capivara do DNS também? A gente mostra
     if (options.dnsDetails) {
         console.log("");
         console.log(chalk.bold("  🌐 Detalhes DNS"));
@@ -108,6 +113,6 @@ export async function checkCommand(url: string, options: CheckOptions): Promise<
 
     console.log("");
 
-    // Exit with appropriate code
+    // Devolve o codigo pro sistema operacional (0 deu bom, 1 deu ruim)
     process.exit(result.status === "up" ? 0 : 1);
 }

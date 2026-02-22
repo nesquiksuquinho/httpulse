@@ -51,6 +51,7 @@ program
     .option("-t, --timeout <ms>", "Timeout da requisição em milissegundos", "10000")
     .option("--dashboard", "Usar modo de dashboard interativo", false)
     .option("-H, --header <header...>", "Headers customizados (chave:valor)", [])
+    .option("--save <file>", "Salvar a sessão em um arquivo JSON ao terminar (para gerar relatórios depois)")
     .action(async (urls: string[], options: Record<string, unknown>) => {
         await probeCommand(urls, {
             interval: options.interval as string,
@@ -61,6 +62,7 @@ program
             timeout: parseInt(options.timeout as string, 10),
             dashboard: options.dashboard as boolean,
             headers: (options.header ?? []) as string[],
+            output: options.save as string | undefined,
         });
     });
 

@@ -72,24 +72,24 @@ export class ProbeScheduler {
 
         this.running = true;
 
-        // Configurar timeout de duração se definido
+        // se o maluco mandou parar dps de um tempo, armamos a bomba relogio
         if (this.config.durationMs > 0) {
             this.timeoutId = setTimeout(() => {
                 this.stop();
             }, this.config.durationMs);
         }
 
-        // Executar primeira sonda imediatamente
+        // manda a primeira pancada de tiro logo de cara pra nao deixar o cara esperando
         await this.executeProbeRound();
 
-        // Agendar sondas subsequentes
+        // se continuou vivo, liga o metronomo pra metralhar nas horas certas
         if (this.running) {
             this.intervalId = setInterval(async () => {
                 await this.executeProbeRound();
             }, this.config.intervalMs);
         }
 
-        // Retorna uma promise que resolve quando a sessão termina
+        // segura a bronca (promise) ate acabar tudo
         return new Promise<ProbeSession>((resolve) => {
             if (!this.running) {
                 resolve(this.session);
@@ -117,11 +117,11 @@ export class ProbeScheduler {
             this.timeoutId = null;
         }
 
-        // Finalizar sessão
+        // deu a hora de ir embora, bate o ponto e roda as estatisticas
         this.session.endedAt = new Date();
         this.session.stats = computeSessionStats(this.session.results);
 
-        // Notificar ouvintes
+        // avisa a galera do chat (listeners) q acabou a festa
         for (const listener of this.listeners.onSessionEnd) {
             listener(this.session);
         }
@@ -145,7 +145,7 @@ export class ProbeScheduler {
 
         await Promise.allSettled(probePromises);
 
-        // Verificar se atingimos o limite máximo de sondas
+        // se bateu o limite de tiros (maxProbes), corta o barato e bota um fim nisosu
         if (this.config.maxProbes > 0 && this.probeCount >= this.config.maxProbes) {
             this.stop();
         }

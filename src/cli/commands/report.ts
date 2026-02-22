@@ -8,11 +8,11 @@ import { renderBanner } from "../ui/table.js";
 
 // o que o cara q rodou o comando enviou pras args do relatorio
 export interface ReportOptions {
-    
+
     input: string;
-    
+
     format: ReportFormat;
-    
+
     output?: string;
 }
 
@@ -20,7 +20,7 @@ export interface ReportOptions {
 export async function reportCommand(options: ReportOptions): Promise<void> {
     process.stdout.write(renderBanner());
 
-    // Read input file
+    // tenta ler a fita (arquivo json)
     let rawData: string;
     try {
         rawData = await readFile(options.input, "utf-8");
@@ -29,7 +29,7 @@ export async function reportCommand(options: ReportOptions): Promise<void> {
         process.exit(1);
     }
 
-    // Parse session data
+    // tenta entender o q q tem dentro desse json sem quebrar tudo
     let sessionData: Record<string, unknown>;
     try {
         sessionData = JSON.parse(rawData) as Record<string, unknown>;
@@ -38,10 +38,10 @@ export async function reportCommand(options: ReportOptions): Promise<void> {
         process.exit(1);
     }
 
-    // Reconstruct session object
+    // remonta o frankenstein pro formato q a gente entende no codigo
     const session = reconstructSession(sessionData);
 
-    // Generate report
+    // fabrica o relatorio no formato q o chefe pediu
     let report: string;
     switch (options.format) {
         case "json":
@@ -58,7 +58,7 @@ export async function reportCommand(options: ReportOptions): Promise<void> {
             process.exit(1);
     }
 
-    // Output report
+    // joga o relatorio pronto no terminal ou salva num doc novo
     if (options.output) {
         await writeFile(options.output, report, "utf-8");
         console.log(chalk.green(`  ✓ Relatório salvo em ${options.output}`));

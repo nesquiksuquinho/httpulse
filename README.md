@@ -104,15 +104,21 @@ O dashboard é bizarro de bonitu:
   Uptime:  99.5%  Avg: 145ms  P95: 312ms  Probes: 24
 ```
 
-### Relatórios em HTML, Markdown ou JSON
+### Monitoramento com Exportação de Relatórios
 
-Rodou muito tempo? Pode cuspir isso em relatorio parseadinho:
+Quer deixar monitorando a noite toda e ver o resultado de manhã num relatório lindão em HTML ou Markdown? O `httpulse` faz isso nativamente.
 
+**Passo 1:** Rode o comando `probe` passando a flag `--save` para salvar todos os milissegundos num banco JSON puro:
 ```bash
-# gera um HTML lindo
+httpulse probe google.com github.com -i 5s --save sessao.json
+```
+
+**Passo 2:** Quando terminar (Ctrl+C), converta essa `sessao.json` bruta num relatório visual instantaneamente:
+```bash
+# gera um dashboard estático HTML lindo
 httpulse report -i sessao.json -f html -o relatorio.html
 
-# gera Markdown pro seu README
+# ou gera Markdown pra anexar no seu README
 httpulse report -i sessao.json -f markdown -o relatorio.md
 ```
 
