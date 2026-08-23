@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ httpulse
+# ⚡ httpulse!
 
 **o canivete suíço definitivo pra apis e testes de rede no terminal**
 
